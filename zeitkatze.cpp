@@ -1,6 +1,7 @@
 #include <chrono>
 #include <csignal>
 #include <iostream>
+#include <poll.h>
 
 using std::chrono::steady_clock;
 using std::chrono::duration;
@@ -37,7 +38,8 @@ void interrupt(int sig) {
 int main(int argc, char** argv) {
   signal(SIGINT, interrupt);
 
-  while(running);
+  while(running)
+    poll(0, 0, -1);
 
   return 0;
 }
