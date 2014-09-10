@@ -14,14 +14,21 @@ class Zeitkatze {
 };
 
 // oh so globally
+Zeitkatze z;
 bool running = true;
 
 void interrupt(int sig) {
-  running = false;
+  const double EXIT_TIMEOUT = 0.8;
+  static double last_interrupt = -EXIT_TIMEOUT;
+  z.print();
+
+  if (z.elapsed() - last_interrupt < EXIT_TIMEOUT)
+    running = false;
+
+  last_interrupt = z.elapsed();
 }
 
 int main(int argc, char** argv) {
-  Zeitkatze z;
   signal(SIGINT, interrupt);
 
   while(running);
