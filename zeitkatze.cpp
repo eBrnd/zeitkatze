@@ -1,16 +1,22 @@
-#include <ctime>
+#include <chrono>
 #include <csignal>
 #include <iostream>
 
+using std::chrono::steady_clock;
+using std::chrono::duration;
+using std::chrono::duration_cast;
+
 class Zeitkatze {
   public:
-    Zeitkatze() : start(clock()) { }
+    Zeitkatze() : start(steady_clock::now()) { }
     ~Zeitkatze() { print(); }
 
     void print() { std::cout << elapsed() << std::endl; }
-    double elapsed() { return static_cast<double>(clock() - start) / static_cast<double>(CLOCKS_PER_SEC); }
+    double elapsed() {
+      duration<double> time_span = duration_cast<duration<double>>(steady_clock::now() - start);
+      return time_span.count(); }
   private:
-    clock_t start;
+    steady_clock::time_point start;
 };
 
 // oh so globally
