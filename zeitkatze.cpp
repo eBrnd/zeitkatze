@@ -2,6 +2,7 @@
 #include <csignal>
 #include <iostream>
 #include <poll.h>
+#include <vector>
 
 using std::chrono::steady_clock;
 using std::chrono::duration;
@@ -10,10 +11,10 @@ using std::chrono::duration_cast;
 class Zeitkatze {
   public:
     Zeitkatze() : split_printed(false), start(steady_clock::now()) { }
-    ~Zeitkatze() { print_split_time("Stop: "); std::cout << std::endl; }
+    ~Zeitkatze() { print_split_time(cats[2]); std::cout << std::endl; }
 
     void print_split_time(const std::string& msg) {
-      std::cout << "\r" << msg << elapsed() << std::flush;
+      std::cout << "\r" << msg << "   " << elapsed() << std::flush;
       split_printed = true;
     }
 
@@ -22,7 +23,7 @@ class Zeitkatze {
         std::cout << std::endl;
         split_printed = false;
       }
-      std::cout << "\r" << std::flush << elapsed();
+      std::cout << "\r" << std::flush << cats[0] << "   " << elapsed();
     }
 
     double elapsed() {
@@ -30,10 +31,13 @@ class Zeitkatze {
       return time_span.count();
     }
 
+    static const std::vector<const char*> cats;
   private:
     bool split_printed;
     steady_clock::time_point start;
 };
+
+const std::vector<const char*> Zeitkatze::cats({ "=(^.^)=", "=(o.o)=", "=(=.=)=" });
 
 // oh so globally
 const double EXIT_TIMEOUT = 0.8;
@@ -45,7 +49,7 @@ void interrupt(int sig) {
   if (z.elapsed() - last_interrupt < EXIT_TIMEOUT)
     running = false;
   else
-    z.print_split_time("Split: ");
+    z.print_split_time(z.cats[1]);
 
   last_interrupt = z.elapsed();
 }
