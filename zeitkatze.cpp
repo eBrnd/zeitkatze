@@ -13,7 +13,7 @@ class Zeitkatze {
     ~Zeitkatze() { print_split_time("Stop: "); std::cout << std::endl; }
 
     void print_split_time(const std::string& msg) {
-      std::cout << "\r" << std::flush << msg << elapsed() << std::flush;
+      std::cout << "\r" << msg << elapsed() << std::flush;
       split_printed = true;
     }
 
