@@ -3,6 +3,7 @@
 #include <iostream>
 #include <poll.h>
 #include <vector>
+#include <iomanip>
 
 using std::chrono::steady_clock;
 using std::chrono::duration;
@@ -10,11 +11,15 @@ using std::chrono::duration_cast;
 
 class Zeitkatze {
   public:
-    Zeitkatze() : split_printed(false), start(steady_clock::now()) { }
+    Zeitkatze() : split_printed(false), start(steady_clock::now()) {
+      std::cout << std::fixed << std::setprecision(2);
+    }
     ~Zeitkatze() { print_split_time(cats[2]); std::cout << std::endl; }
 
     void print_split_time(const std::string& msg) {
-      std::cout << "\r" << msg << "   " << elapsed() << std::flush;
+      std::cout << "\r" << msg << "   "
+          << std::setprecision(4) << elapsed() << std::setprecision(2)
+          << std::flush;
       split_printed = true;
     }
 
@@ -23,7 +28,7 @@ class Zeitkatze {
         std::cout << std::endl;
         split_printed = false;
       }
-      std::cout << "\r" << std::flush << cats[0] << "   " << elapsed();
+      std::cout << "\r" << cats[0] << "   " << elapsed() << std::flush;
     }
 
     double elapsed() {
@@ -58,7 +63,7 @@ int main(int argc, char** argv) {
   signal(SIGINT, interrupt);
 
   while(running) {
-    poll(0, 0, 50);
+    poll(0, 0, 42);
     if (z.elapsed() - last_interrupt > EXIT_TIMEOUT)
       z.print_current_time();
   }
