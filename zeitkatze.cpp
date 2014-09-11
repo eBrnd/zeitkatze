@@ -10,12 +10,21 @@ using std::chrono::duration_cast;
 class Zeitkatze {
   public:
     Zeitkatze() : start(steady_clock::now()) { }
-    ~Zeitkatze() { print(); }
+    ~Zeitkatze() { print_split_time("Stop: "); }
 
-    void print() { std::cout << elapsed() << std::endl; }
+    void print_split_time(const std::string& msg) {
+      std::cout << "\r" << std::flush << msg << elapsed() << std::endl;
+    }
+
+    void print_current_time() {
+      std::cout << "\r" << std::flush << elapsed();
+     }
+
     double elapsed() {
       duration<double> time_span = duration_cast<duration<double>>(steady_clock::now() - start);
-      return time_span.count(); }
+      return time_span.count();
+    }
+
   private:
     steady_clock::time_point start;
 };
@@ -27,10 +36,11 @@ bool running = true;
 void interrupt(int sig) {
   const double EXIT_TIMEOUT = 0.8;
   static double last_interrupt = -EXIT_TIMEOUT;
-  z.print();
 
   if (z.elapsed() - last_interrupt < EXIT_TIMEOUT)
     running = false;
+  else
+    z.print_split_time("Split: ");
 
   last_interrupt = z.elapsed();
 }
@@ -38,8 +48,10 @@ void interrupt(int sig) {
 int main(int argc, char** argv) {
   signal(SIGINT, interrupt);
 
-  while(running)
-    poll(0, 0, -1);
+  while(running) {
+    poll(0, 0, 50);
+    z.print_current_time();
+  }
 
   return 0;
 }
