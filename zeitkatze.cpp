@@ -14,7 +14,7 @@ class Zeitkatze {
     Zeitkatze() : split_printed(false), start(steady_clock::now()) {
       std::cout << std::fixed << std::setprecision(2);
     }
-    ~Zeitkatze() { print_split_time(cats[2]); std::cout << std::endl; }
+    ~Zeitkatze() { print_split_time(cats[cats.size() - 1]); std::cout << std::endl; }
 
     void print_split_time(const std::string& msg) {
       std::cout << "\r" << msg << "   "
@@ -36,13 +36,20 @@ class Zeitkatze {
       return time_span.count();
     }
 
+    std::string some_cat() {
+      return cats[static_cast<unsigned>(elapsed() * 100) % (cats.size() - 2) + 1];
+    }
+
     static const std::vector<const char*> cats;
+
   private:
     bool split_printed;
     steady_clock::time_point start;
 };
 
-const std::vector<const char*> Zeitkatze::cats({ "=(^.^)=", "=(o.o)=", "=(=.=)=" });
+const std::vector<const char*> Zeitkatze::cats({ "=(^.^)=", "=(o.o)=", "=(^.^)\"", "=(x.x)=",
+    "=(o.o)m", " (o,o) ", "=(0.0)=", "=(@.@)=", "=(*.*)=", "=(-.-)=", "=(v.v)=", "=(o.O)=",
+    "=[˙.˙]=", "=(~.~)=", "=(ˇ.ˇ)=", "=(=.=)=" });
 
 // oh so globally
 const double EXIT_TIMEOUT = 0.8;
@@ -54,7 +61,7 @@ void interrupt(int sig) {
   if (z.elapsed() - last_interrupt < EXIT_TIMEOUT)
     running = false;
   else
-    z.print_split_time(z.cats[1]);
+    z.print_split_time(z.some_cat());
 
   last_interrupt = z.elapsed();
 }
