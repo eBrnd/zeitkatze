@@ -1,25 +1,25 @@
 #include <chrono>
+#include <cmath>
 #include <csignal>
+#include <iomanip>
 #include <iostream>
 #include <poll.h>
+#include <sstream>
 #include <vector>
-#include <iomanip>
 
-using std::chrono::steady_clock;
 using std::chrono::duration;
 using std::chrono::duration_cast;
+using std::chrono::steady_clock;
+using std::setfill;
+using std::setw;
 
 class Zeitkatze {
   public:
-    Zeitkatze() : split_printed(false), start(steady_clock::now()) {
-      std::cout << std::fixed << std::setprecision(2);
-    }
+    Zeitkatze() : split_printed(false), start(steady_clock::now()) { }
     ~Zeitkatze() { print_split_time(cats[cats.size() - 1]); std::cout << std::endl; }
 
     void print_split_time(const std::string& msg) {
-      std::cout << "\r" << msg << "   "
-          << std::setprecision(4) << elapsed() << std::setprecision(2)
-          << std::flush;
+      std::cout << "\r" << msg << "   " << format_seconds(elapsed(), 4) << std::flush;
       split_printed = true;
     }
 
@@ -28,12 +28,30 @@ class Zeitkatze {
         std::cout << std::endl;
         split_printed = false;
       }
-      std::cout << "\r" << cats[0] << "   " << elapsed() << std::flush;
+      std::cout << "\r" << cats[0] << "   " << format_seconds(elapsed(), 2) << std::flush;
     }
 
     double elapsed() {
       duration<double> time_span = duration_cast<duration<double>>(steady_clock::now() - start);
       return time_span.count();
+    }
+
+    std::string format_seconds(double seconds, unsigned precision = 2) {
+      double full_seconds = floor(seconds);
+      double fractional_seconds = seconds - full_seconds;
+
+      double minutes = floor(full_seconds / 60.0);
+
+      unsigned min = static_cast<unsigned>(minutes);
+      unsigned sec = static_cast<unsigned>(full_seconds) % 60;
+      unsigned frs = static_cast<unsigned>(fractional_seconds * pow(10, precision));
+
+      std::ostringstream oss;
+      if (min > 0)
+        oss << min << ":";
+      oss << setfill('0') << setw(2) << sec << "." << setw(precision) << frs;
+
+      return oss.str();
     }
 
     std::string some_cat() {
