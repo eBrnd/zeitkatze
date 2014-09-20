@@ -1,10 +1,12 @@
 #include <chrono>
 #include <cmath>
 #include <csignal>
+#include <fcntl.h>
 #include <iomanip>
 #include <iostream>
 #include <poll.h>
 #include <sstream>
+#include <unistd.h>
 #include <vector>
 
 using std::chrono::duration;
@@ -86,9 +88,16 @@ void interrupt(int sig) {
 
 int main(int argc, char** argv) {
   signal(SIGINT, interrupt);
+  fcntl(STDIN_FILENO, F_SETFL, O_NONBLOCK);
+  pollfd fds[] = { { STDIN_FILENO, POLLIN, 0 } };
+  unsigned char x = 0;
 
   while(running) {
-    poll(0, 0, 42);
+    if (poll(fds, 1, 42) == 1) {
+      if ((fds[0].revents & POLLIN) && read(0, &x, 1) == 0)
+        return 0;
+    }
+
     if (z.elapsed() - last_interrupt > EXIT_TIMEOUT)
       z.print_current_time();
   }
