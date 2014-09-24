@@ -18,11 +18,16 @@ using std::setw;
 
 class Zeitkatze {
   public:
-    Zeitkatze() : split_printed(false), start(steady_clock::now()) { }
+    Zeitkatze() : split_printed(false), start(steady_clock::now()), last_lap(start) { }
     ~Zeitkatze() { print_split_time(cats[cats.size() - 1]); std::cout << std::endl; }
 
     void print_split_time(const std::string& msg) {
-      std::cout << "\r" << msg << "   " << format_seconds(elapsed(), 4) << std::flush;
+      steady_clock::time_point now(steady_clock::now());
+      std::cout << "\r"
+        << msg << "   " << format_seconds(elapsed(), 4)
+        << "  (" << format_seconds(duration_cast<duration<double>>(now - last_lap).count(), 4)
+        << ")" << std::flush;
+      last_lap = now;
       split_printed = true;
     }
 
@@ -65,7 +70,7 @@ class Zeitkatze {
 
   private:
     bool split_printed;
-    steady_clock::time_point start;
+    steady_clock::time_point start, last_lap;
 };
 
 const std::vector<const char*> Zeitkatze::cats({ "=(^.^)=", "=(o.o)=", "=(^.^)\"", "=(x.x)=",
