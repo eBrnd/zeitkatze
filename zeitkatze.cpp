@@ -6,6 +6,7 @@
 #include <iostream>
 #include <poll.h>
 #include <sstream>
+#include <termios.h>
 #include <unistd.h>
 #include <vector>
 
@@ -92,10 +93,26 @@ int main(int argc, char** argv) {
   pollfd fds[] = { { STDIN_FILENO, POLLIN, 0 } };
   unsigned char x = 0;
 
+  struct termios tio;
+
+  if (tcgetattr(1, &tio) == 0) {
+    tio.c_lflag &= ~ECHO;
+    tcsetattr(1, TCSANOW, &tio);
+  }
+
   while(running) {
     if (poll(fds, 1, 42) == 1) {
-      if ((fds[0].revents & POLLIN) && read(0, &x, 1) == 0)
-        return 0;
+      if ((fds[0].revents & POLLIN)) {
+        switch (read(0, &x, 1)) {
+        case 0:
+          return 0;
+
+        case 1:
+          if (x == '\r' || x == '\n') {
+            z.print_split_time(z.some_cat());
+          }
+        }
+      }
     }
 
     if (z.elapsed() - last_interrupt > EXIT_TIMEOUT)
