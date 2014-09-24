@@ -23,12 +23,17 @@ class Zeitkatze {
 
     void print_split_time(const std::string& msg) {
       steady_clock::time_point now(steady_clock::now());
-      std::cout << "\r"
-        << msg << "   " << format_seconds(elapsed(), 4)
+      std::stringstream sbuf;
+      sbuf << msg << "   " << format_seconds(elapsed(), 4)
         << "  (" << format_seconds(duration_cast<duration<double>>(now - last_lap).count(), 4)
-        << ")" << std::flush;
+        << ")";
+      std::string&& line = sbuf.str();
+      std::cout << "\r" << std::string(last_line_len, ' ')
+        << "\r" << line << std::flush;
       last_lap = now;
       split_printed = true;
+      had_lap = true;
+      last_line_len = line.size();
     }
 
     void print_current_time() {
@@ -36,7 +41,16 @@ class Zeitkatze {
         std::cout << std::endl;
         split_printed = false;
       }
-      std::cout << "\r" << cats[0] << "   " << format_seconds(elapsed(), 2) << std::flush;
+      std::stringstream sbuf;
+      sbuf << cats[0] << "   " << format_seconds(elapsed(), 2);
+      if (had_lap) {
+        auto current_lap = duration_cast<duration<double>>(steady_clock::now() - last_lap);
+        sbuf << "  (" << format_seconds(current_lap.count(), 2) << ")";
+      }
+      std::string&& line = sbuf.str();
+      std::cout << "\r" << std::string(last_line_len, ' ')
+        << "\r" << line << std::flush;
+      last_line_len = line.size();
     }
 
     double elapsed() {
@@ -66,11 +80,17 @@ class Zeitkatze {
       return cats[static_cast<unsigned>(elapsed() * 100) % (cats.size() - 2) + 1];
     }
 
+    void reset_laps() {
+      last_lap = steady_clock::now();
+      had_lap = false;
+    }
+
     static const std::vector<const char*> cats;
 
   private:
-    bool split_printed;
+    bool split_printed, had_lap;
     steady_clock::time_point start, last_lap;
+    unsigned last_line_len;
 };
 
 const std::vector<const char*> Zeitkatze::cats({ "=(^.^)=", "=(o.o)=", "=(^.^)\"", "=(x.x)=",
@@ -101,21 +121,27 @@ int main(int argc, char** argv) {
   struct termios tio;
 
   if (tcgetattr(1, &tio) == 0) {
-    tio.c_lflag &= ~ECHO;
+    tio.c_lflag &= ~(ECHO | ICANON);
+    tio.c_cc[VMIN] = 0;
+    tio.c_cc[VTIME] = 0;
     tcsetattr(1, TCSANOW, &tio);
   }
 
   while(running) {
     if (poll(fds, 1, 42) == 1) {
-      if ((fds[0].revents & POLLIN)) {
-        switch (read(0, &x, 1)) {
-        case 0:
-          return 0;
+      if ((fds[0].revents & POLLIN) && read(0, &x, 1) == 1) {
+        switch (x) {
+        case '\n':
+        case '\r':
+          z.print_split_time(z.some_cat());
+          break;
 
-        case 1:
-          if (x == '\r' || x == '\n') {
-            z.print_split_time(z.some_cat());
-          }
+        case 'r':
+          z.reset_laps();
+          break;
+
+        case 4: // ^D
+          return 0;
         }
       }
     }
