@@ -46,9 +46,17 @@ std::ostream& operator<<(std::ostream& oss, Color c) {
 class Zeitkatze {
   public:
     Zeitkatze() : split_printed(false), start(steady_clock::now()), last_lap(start) { }
-    ~Zeitkatze() { print_split_time(cats[cats.size() - 1], Color::Total); std::cout << std::endl; }
+    ~Zeitkatze() { print_end_time(); std::cout << std::endl; }
 
-    void print_split_time(const std::string& msg, const Color color = Color::Split) {
+    void print_split_time() {
+      print_time(some_cat(), Color::Split);
+    }
+
+    void print_end_time() {
+      print_time(cats[cats.size() - 1], Color::Total);
+    }
+
+    void print_time(const std::string& msg, const Color color) {
       steady_clock::time_point now(steady_clock::now());
       std::stringstream sbuf;
       sbuf << Color::Cat_hold << msg << Color::Cat_hold << "   " << color << format_seconds(elapsed(), 4) << Color::Normal
@@ -136,7 +144,7 @@ void interrupt(int sig) {
   if (z.elapsed() - last_interrupt < EXIT_TIMEOUT)
     running = false;
   else
-    z.print_split_time(z.some_cat());
+    z.print_split_time();
 
   last_interrupt = z.elapsed();
 }
@@ -162,7 +170,7 @@ int main(int argc, char** argv) {
         switch (x) {
         case '\n':
         case '\r':
-          z.print_split_time(z.some_cat());
+          z.print_split_time();
           break;
 
         case 'r':
