@@ -16,44 +16,49 @@ using std::chrono::steady_clock;
 using std::setfill;
 using std::setw;
 
-class Colors {
-  public:
-    enum class ColorEnum {
-      Normal,
-      Cat,
-      Cat_hold,
-      Total,
-      Running,
-      Running_lap,
-      Split,
-      Split_lap
-    };
 
-    static std::string getColor(ColorEnum c) {
-      switch(c) {
-        case ColorEnum::Normal: return "\033[0m";
-        case ColorEnum::Cat: return "\033[34m";
-        case ColorEnum::Cat_hold: return "\033[34;1m";
-        case ColorEnum::Total: return "\033[37;1m";
-        case ColorEnum::Running: return "\033[32m";
-        case ColorEnum::Running_lap: return "\033[33m";
-        case ColorEnum::Split: return "\033[32;1m";
-        case ColorEnum::Split_lap: return "\033[33;1m";
-        default: return "";
-      }
-    }
+enum class Color {
+  Normal,
+  Cat,
+  Cat_hold,
+  Total,
+  Running,
+  Running_lap,
+  Split,
+  Split_lap
 };
+
+std::ostream& operator<<(std::ostream& oss, Color c) {
+  switch(c) {
+    case Color::Normal: oss << "\033[0m"; break;
+    case Color::Cat: oss << "\033[34m"; break;
+    case Color::Cat_hold: oss << "\033[34;1m"; break;
+    case Color::Total: oss << "\033[37;1m"; break;
+    case Color::Running: oss << "\033[32m"; break;
+    case Color::Running_lap: oss << "\033[33m"; break;
+    case Color::Split: oss << "\033[32;1m"; break;
+    case Color::Split_lap: oss << "\033[33;1m"; break;
+    default: break;
+  }
+  return oss;
+}
+
+std::string colorToStr(Color c) {
+  std::ostringstream oss;
+  oss << c;
+  return oss.str();
+}
 
 class Zeitkatze {
   public:
     Zeitkatze() : split_printed(false), start(steady_clock::now()), last_lap(start) { }
-    ~Zeitkatze() { print_split_time(cats[cats.size() - 1], Colors::getColor(Colors::ColorEnum::Total)); std::cout << std::endl; }
+    ~Zeitkatze() { print_split_time(cats[cats.size() - 1], colorToStr(Color::Total)); std::cout << std::endl; }
 
-    void print_split_time(const std::string& msg, const std::string& color = Colors::getColor(Colors::ColorEnum::Split)) {
+    void print_split_time(const std::string& msg, const std::string& color = colorToStr(Color::Split)) {
       steady_clock::time_point now(steady_clock::now());
       std::stringstream sbuf;
-      sbuf << Colors::getColor(Colors::ColorEnum::Cat_hold) << msg << Colors::getColor(Colors::ColorEnum::Cat_hold) << "   " << color << format_seconds(elapsed(), 4) << Colors::getColor(Colors::ColorEnum::Normal)
-        << "  (" << Colors::getColor(Colors::ColorEnum::Split_lap) << format_seconds(duration_cast<duration<double>>(now - last_lap).count(), 4) << Colors::getColor(Colors::ColorEnum::Normal)
+      sbuf << colorToStr(Color::Cat_hold) << msg << colorToStr(Color::Cat_hold) << "   " << color << format_seconds(elapsed(), 4) << colorToStr(Color::Normal)
+        << "  (" << colorToStr(Color::Split_lap) << format_seconds(duration_cast<duration<double>>(now - last_lap).count(), 4) << colorToStr(Color::Normal)
         << ")";
       std::string&& line = sbuf.str();
       std::cout << "\r" << std::string(last_line_len, ' ')
@@ -70,10 +75,10 @@ class Zeitkatze {
         split_printed = false;
       }
       std::stringstream sbuf;
-      sbuf << Colors::getColor(Colors::ColorEnum::Cat) << cats[0] << "   " << Colors::getColor(Colors::ColorEnum::Running) << format_seconds(elapsed(), 2) << Colors::getColor(Colors::ColorEnum::Normal);
+      sbuf << colorToStr(Color::Cat) << cats[0] << "   " << colorToStr(Color::Running) << format_seconds(elapsed(), 2) << colorToStr(Color::Normal);
       if (had_lap) {
         auto current_lap = duration_cast<duration<double>>(steady_clock::now() - last_lap);
-        sbuf << "  (" << Colors::getColor(Colors::ColorEnum::Running_lap) << format_seconds(current_lap.count(), 2) << Colors::getColor(Colors::ColorEnum::Normal) << ")";
+        sbuf << "  (" << colorToStr(Color::Running_lap) << format_seconds(current_lap.count(), 2) << colorToStr(Color::Normal) << ")";
       }
       std::string&& line = sbuf.str();
       std::cout << "\r" << std::string(last_line_len, ' ')
@@ -105,7 +110,7 @@ class Zeitkatze {
     }
 
     std::string some_cat() {
-      return Colors::getColor(Colors::ColorEnum::Cat_hold) + cats[static_cast<unsigned>(elapsed() * 100) % (cats.size() - 2) + 1] + Colors::getColor(Colors::ColorEnum::Normal);
+      return colorToStr(Color::Cat_hold) + cats[static_cast<unsigned>(elapsed() * 100) % (cats.size() - 2) + 1] + colorToStr(Color::Normal);
     }
 
     void reset_laps() {
