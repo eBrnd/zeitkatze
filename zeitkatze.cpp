@@ -16,25 +16,44 @@ using std::chrono::steady_clock;
 using std::setfill;
 using std::setw;
 
-const std::string color_normal = "\033[0m";
-const std::string color_cat = "\033[34m";
-const std::string color_cat_hold = "\033[34;1m";
-const std::string color_total = "\033[37;1m";
-const std::string color_running = "\033[32m";
-const std::string color_running_lap = "\033[33m";
-const std::string color_split = "\033[32;1m";
-const std::string color_split_lap = "\033[33;1m";
+class Colors {
+  public:
+    enum class ColorEnum {
+      Normal,
+      Cat,
+      Cat_hold,
+      Total,
+      Running,
+      Running_lap,
+      Split,
+      Split_lap
+    };
+
+    static std::string getColor(ColorEnum c) {
+      switch(c) {
+        case ColorEnum::Normal: return "\033[0m";
+        case ColorEnum::Cat: return "\033[34m";
+        case ColorEnum::Cat_hold: return "\033[34;1m";
+        case ColorEnum::Total: return "\033[37;1m";
+        case ColorEnum::Running: return "\033[32m";
+        case ColorEnum::Running_lap: return "\033[33m";
+        case ColorEnum::Split: return "\033[32;1m";
+        case ColorEnum::Split_lap: return "\033[33;1m";
+        default: return "";
+      }
+    }
+};
 
 class Zeitkatze {
   public:
     Zeitkatze() : split_printed(false), start(steady_clock::now()), last_lap(start) { }
-    ~Zeitkatze() { print_split_time(cats[cats.size() - 1], color_total); std::cout << std::endl; }
+    ~Zeitkatze() { print_split_time(cats[cats.size() - 1], Colors::getColor(Colors::ColorEnum::Total)); std::cout << std::endl; }
 
-    void print_split_time(const std::string& msg, const std::string& color = color_split) {
+    void print_split_time(const std::string& msg, const std::string& color = Colors::getColor(Colors::ColorEnum::Split)) {
       steady_clock::time_point now(steady_clock::now());
       std::stringstream sbuf;
-      sbuf << color_cat_hold << msg << color_cat_hold << "   " << color << format_seconds(elapsed(), 4) << color_normal
-        << "  (" << color_split_lap << format_seconds(duration_cast<duration<double>>(now - last_lap).count(), 4) << color_normal
+      sbuf << Colors::getColor(Colors::ColorEnum::Cat_hold) << msg << Colors::getColor(Colors::ColorEnum::Cat_hold) << "   " << color << format_seconds(elapsed(), 4) << Colors::getColor(Colors::ColorEnum::Normal)
+        << "  (" << Colors::getColor(Colors::ColorEnum::Split_lap) << format_seconds(duration_cast<duration<double>>(now - last_lap).count(), 4) << Colors::getColor(Colors::ColorEnum::Normal)
         << ")";
       std::string&& line = sbuf.str();
       std::cout << "\r" << std::string(last_line_len, ' ')
@@ -51,10 +70,10 @@ class Zeitkatze {
         split_printed = false;
       }
       std::stringstream sbuf;
-      sbuf << color_cat << cats[0] << "   " << color_running << format_seconds(elapsed(), 2) << color_normal;
+      sbuf << Colors::getColor(Colors::ColorEnum::Cat) << cats[0] << "   " << Colors::getColor(Colors::ColorEnum::Running) << format_seconds(elapsed(), 2) << Colors::getColor(Colors::ColorEnum::Normal);
       if (had_lap) {
         auto current_lap = duration_cast<duration<double>>(steady_clock::now() - last_lap);
-        sbuf << "  (" << color_running_lap << format_seconds(current_lap.count(), 2) << color_normal << ")";
+        sbuf << "  (" << Colors::getColor(Colors::ColorEnum::Running_lap) << format_seconds(current_lap.count(), 2) << Colors::getColor(Colors::ColorEnum::Normal) << ")";
       }
       std::string&& line = sbuf.str();
       std::cout << "\r" << std::string(last_line_len, ' ')
@@ -86,7 +105,7 @@ class Zeitkatze {
     }
 
     std::string some_cat() {
-      return color_cat_hold + cats[static_cast<unsigned>(elapsed() * 100) % (cats.size() - 2) + 1] + color_normal;
+      return Colors::getColor(Colors::ColorEnum::Cat_hold) + cats[static_cast<unsigned>(elapsed() * 100) % (cats.size() - 2) + 1] + Colors::getColor(Colors::ColorEnum::Normal);
     }
 
     void reset_laps() {
