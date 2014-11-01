@@ -43,22 +43,16 @@ std::ostream& operator<<(std::ostream& oss, Color c) {
   return oss;
 }
 
-std::string colorToStr(Color c) {
-  std::ostringstream oss;
-  oss << c;
-  return oss.str();
-}
-
 class Zeitkatze {
   public:
     Zeitkatze() : split_printed(false), start(steady_clock::now()), last_lap(start) { }
-    ~Zeitkatze() { print_split_time(cats[cats.size() - 1], colorToStr(Color::Total)); std::cout << std::endl; }
+    ~Zeitkatze() { print_split_time(cats[cats.size() - 1], Color::Total); std::cout << std::endl; }
 
-    void print_split_time(const std::string& msg, const std::string& color = colorToStr(Color::Split)) {
+    void print_split_time(const std::string& msg, const Color color = Color::Split) {
       steady_clock::time_point now(steady_clock::now());
       std::stringstream sbuf;
-      sbuf << colorToStr(Color::Cat_hold) << msg << colorToStr(Color::Cat_hold) << "   " << color << format_seconds(elapsed(), 4) << colorToStr(Color::Normal)
-        << "  (" << colorToStr(Color::Split_lap) << format_seconds(duration_cast<duration<double>>(now - last_lap).count(), 4) << colorToStr(Color::Normal)
+      sbuf << Color::Cat_hold << msg << Color::Cat_hold << "   " << color << format_seconds(elapsed(), 4) << Color::Normal
+        << "  (" << Color::Split_lap << format_seconds(duration_cast<duration<double>>(now - last_lap).count(), 4) << Color::Normal
         << ")";
       std::string&& line = sbuf.str();
       std::cout << "\r" << std::string(last_line_len, ' ')
@@ -75,10 +69,10 @@ class Zeitkatze {
         split_printed = false;
       }
       std::stringstream sbuf;
-      sbuf << colorToStr(Color::Cat) << cats[0] << "   " << colorToStr(Color::Running) << format_seconds(elapsed(), 2) << colorToStr(Color::Normal);
+      sbuf << Color::Cat << cats[0] << "   " << Color::Running << format_seconds(elapsed(), 2) << Color::Normal;
       if (had_lap) {
         auto current_lap = duration_cast<duration<double>>(steady_clock::now() - last_lap);
-        sbuf << "  (" << colorToStr(Color::Running_lap) << format_seconds(current_lap.count(), 2) << colorToStr(Color::Normal) << ")";
+        sbuf << "  (" << Color::Running_lap << format_seconds(current_lap.count(), 2) << Color::Normal << ")";
       }
       std::string&& line = sbuf.str();
       std::cout << "\r" << std::string(last_line_len, ' ')
@@ -110,7 +104,9 @@ class Zeitkatze {
     }
 
     std::string some_cat() {
-      return colorToStr(Color::Cat_hold) + cats[static_cast<unsigned>(elapsed() * 100) % (cats.size() - 2) + 1] + colorToStr(Color::Normal);
+      std::ostringstream oss;
+      oss << Color::Cat_hold << cats[static_cast<unsigned>(elapsed() * 100) % (cats.size() - 2) + 1] << Color::Normal;
+      return oss.str();
     }
 
     void reset_laps() {
