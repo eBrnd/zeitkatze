@@ -16,16 +16,25 @@ using std::chrono::steady_clock;
 using std::setfill;
 using std::setw;
 
+const std::string color_normal = "\033[0m";
+const std::string color_cat = "\033[34m";
+const std::string color_cat_hold = "\033[34;1m";
+const std::string color_total = "\033[37;1m";
+const std::string color_running = "\033[32m";
+const std::string color_running_lap = "\033[33m";
+const std::string color_split = "\033[32;1m";
+const std::string color_split_lap = "\033[33;1m";
+
 class Zeitkatze {
   public:
     Zeitkatze() : split_printed(false), start(steady_clock::now()), last_lap(start) { }
-    ~Zeitkatze() { print_split_time(cats[cats.size() - 1]); std::cout << std::endl; }
+    ~Zeitkatze() { print_split_time(cats[cats.size() - 1], color_total); std::cout << std::endl; }
 
-    void print_split_time(const std::string& msg) {
+    void print_split_time(const std::string& msg, const std::string& color = color_split) {
       steady_clock::time_point now(steady_clock::now());
       std::stringstream sbuf;
-      sbuf << msg << "   " << format_seconds(elapsed(), 4)
-        << "  (" << format_seconds(duration_cast<duration<double>>(now - last_lap).count(), 4)
+      sbuf << color_cat_hold << msg << color_cat_hold << "   " << color << format_seconds(elapsed(), 4) << color_normal
+        << "  (" << color_split_lap << format_seconds(duration_cast<duration<double>>(now - last_lap).count(), 4) << color_normal
         << ")";
       std::string&& line = sbuf.str();
       std::cout << "\r" << std::string(last_line_len, ' ')
@@ -42,10 +51,10 @@ class Zeitkatze {
         split_printed = false;
       }
       std::stringstream sbuf;
-      sbuf << cats[0] << "   " << format_seconds(elapsed(), 2);
+      sbuf << color_cat << cats[0] << "   " << color_running << format_seconds(elapsed(), 2) << color_normal;
       if (had_lap) {
         auto current_lap = duration_cast<duration<double>>(steady_clock::now() - last_lap);
-        sbuf << "  (" << format_seconds(current_lap.count(), 2) << ")";
+        sbuf << "  (" << color_running_lap << format_seconds(current_lap.count(), 2) << color_normal << ")";
       }
       std::string&& line = sbuf.str();
       std::cout << "\r" << std::string(last_line_len, ' ')
@@ -77,7 +86,7 @@ class Zeitkatze {
     }
 
     std::string some_cat() {
-      return cats[static_cast<unsigned>(elapsed() * 100) % (cats.size() - 2) + 1];
+      return color_cat_hold + cats[static_cast<unsigned>(elapsed() * 100) % (cats.size() - 2) + 1] + color_normal;
     }
 
     void reset_laps() {
