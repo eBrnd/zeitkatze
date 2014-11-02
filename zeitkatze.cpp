@@ -16,6 +16,8 @@ using std::chrono::steady_clock;
 using std::setfill;
 using std::setw;
 
+typedef std::vector<const char*> CatVector;
+typedef std::vector<const char*>::size_type CatIndex;
 
 enum class Color {
   Normal,
@@ -49,17 +51,17 @@ class Zeitkatze {
     ~Zeitkatze() { print_end_time(); std::cout << std::endl; }
 
     void print_split_time() {
-      print_time(some_cat(), Color::Split);
+      print_time(some_cat_index(), Color::Split);
     }
 
     void print_end_time() {
-      print_time(cats[cats.size() - 1], Color::Total);
+      print_time(cats.size() - 1, Color::Total);
     }
 
-    void print_time(const std::string& msg, const Color color) {
+    void print_time(const CatIndex cat_index, const Color color) {
       steady_clock::time_point now(steady_clock::now());
       std::stringstream sbuf;
-      sbuf << Color::Cat_hold << msg << Color::Cat_hold << "   " << color << format_seconds(elapsed(), 4) << Color::Normal
+      sbuf << Color::Cat_hold << cats[cat_index] << Color::Cat_hold << "   " << color << format_seconds(elapsed(), 4) << Color::Normal
         << "  (" << Color::Split_lap << format_seconds(duration_cast<duration<double>>(now - last_lap).count(), 4) << Color::Normal
         << ")";
       std::string&& line = sbuf.str();
@@ -111,10 +113,8 @@ class Zeitkatze {
       return oss.str();
     }
 
-    std::string some_cat() {
-      std::ostringstream oss;
-      oss << Color::Cat_hold << cats[static_cast<unsigned>(elapsed() * 100) % (cats.size() - 2) + 1] << Color::Normal;
-      return oss.str();
+    CatIndex some_cat_index() {
+      return static_cast<CatIndex>(elapsed() * 100) % (cats.size() - 2) + 1;
     }
 
     void reset_laps() {
@@ -122,7 +122,7 @@ class Zeitkatze {
       had_lap = false;
     }
 
-    static const std::vector<const char*> cats;
+    static const CatVector cats;
 
   private:
     bool split_printed, had_lap;
@@ -130,7 +130,7 @@ class Zeitkatze {
     unsigned last_line_len;
 };
 
-const std::vector<const char*> Zeitkatze::cats({ "=(^.^)=", "=(o.o)=", "=(^.^)\"", "=(x.x)=",
+const CatVector Zeitkatze::cats({ "=(^.^)=", "=(o.o)=", "=(^.^)\"", "=(x.x)=",
     "=(o.o)m", " (o,o) ", "=(0.0)=", "=(@.@)=", "=(*.*)=", "=(-.-)=", "=(v.v)=", "=(o.O)=",
     "=[˙.˙]=", "=(~.~)=", "=(ˇ.ˇ)=", "=(=.=)=" });
 
