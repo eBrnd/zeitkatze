@@ -157,8 +157,8 @@ void interrupt(int sig) {
 }
 
 int main(int argc, char** argv) {
-  std::string color_env(getenv("ZEITKATZE_COLOR"));
-  if (color_env == "0")
+  char* color_env = getenv("ZEITKATZE_COLOR");
+  if (color_env != nullptr && std::string(color_env) == "0")
     color_enabled = false;
 
   if (argc > 1) {
@@ -179,8 +179,9 @@ int main(int argc, char** argv) {
       std::cout << std::endl;
       std::cout << "-c, --color     Enable colored output (default)." << std::endl;
       std::cout << "-n, --no-color  Disable colored output." << std::endl;
+      std::cout << "                If both arguments are present, the first one counts." << std::endl;
       std::cout << "                (overrides ZEITKATZE_COLOR environment variable (set to" << std::endl;
-      std::cout << "                \"0\" for no color)" << std::endl;
+      std::cout << "                \"0\" for no color))" << std::endl;
 
       return 0;
     }
