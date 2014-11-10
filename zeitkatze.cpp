@@ -164,11 +164,9 @@ int main(int argc, char** argv) {
   if (argc > 1) {
     if (std::string(argv[1]) == "-c" || std::string(argv[1]) == "--color") {
       color_enabled = true;
-    }
-    else if (std::string(argv[1]) == "-n" || std::string(argv[1]) == "--no-color") {
+    } else if (std::string(argv[1]) == "-n" || std::string(argv[1]) == "--no-color") {
       color_enabled = false;
-    }
-    else {
+    } else {
       std::cout << "Zeitkatze" << std::endl;
       std::cout << std::endl;
       std::cout << "    time cat -- literally" << std::endl;
