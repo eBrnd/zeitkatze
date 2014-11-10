@@ -30,17 +30,21 @@ enum class Color {
   Split_lap
 };
 
+bool color_enabled = true;
+
 std::ostream& operator<<(std::ostream& oss, Color c) {
-  switch(c) {
-    case Color::Normal: oss << "\033[0m"; break;
-    case Color::Cat: oss << "\033[34m"; break;
-    case Color::Cat_hold: oss << "\033[34;1m"; break;
-    case Color::Total: oss << "\033[37;1m"; break;
-    case Color::Running: oss << "\033[32m"; break;
-    case Color::Running_lap: oss << "\033[33m"; break;
-    case Color::Split: oss << "\033[32;1m"; break;
-    case Color::Split_lap: oss << "\033[33;1m"; break;
-    default: break;
+  if (color_enabled) {
+    switch (c) {
+      case Color::Normal: oss << "\033[0m"; break;
+      case Color::Cat: oss << "\033[34m"; break;
+      case Color::Cat_hold: oss << "\033[34;1m"; break;
+      case Color::Total: oss << "\033[37;1m"; break;
+      case Color::Running: oss << "\033[32m"; break;
+      case Color::Running_lap: oss << "\033[33m"; break;
+      case Color::Split: oss << "\033[32;1m"; break;
+      case Color::Split_lap: oss << "\033[33;1m"; break;
+      default: break;
+    }
   }
   return oss;
 }
@@ -150,6 +154,37 @@ void interrupt(int sig) {
 }
 
 int main(int argc, char** argv) {
+  std::string color_env(getenv("ZEITKATZE_COLOR"));
+  if (color_env == "0")
+    color_enabled = false;
+
+  if (argc > 1) {
+    if (std::string(argv[1]) == "-c" || std::string(argv[1]) == "--color") {
+      color_enabled = true;
+    }
+    else if (std::string(argv[1]) == "-n" || std::string(argv[1]) == "--no-color") {
+      color_enabled = false;
+    }
+    else {
+      std::cout << "Zeitkatze" << std::endl;
+      std::cout << std::endl;
+      std::cout << "    time cat -- literally" << std::endl;
+      std::cout << std::endl;
+      std::cout << "Usage: zeitkatze [-c | -n | --color | --no-color]" << std::endl;
+      std::cout << std::endl;
+      std::cout << "Ctrl-c for split/lap time, Ctrl-cc or Ctrl-d to stop." << std::endl;
+      std::cout << std::endl;
+      std::cout << "-c, --color     Enable colored output (default)." << std::endl;
+      std::cout << "-n, --no-color  Disable colored output." << std::endl;
+      std::cout << "                (overrides ZEITKATZE_COLOR environment variable (set to" << std::endl;
+      std::cout << "                \"0\" for no color)" << std::endl;
+
+      return 0;
+    }
+
+  }
+
+
   signal(SIGINT, interrupt);
   fcntl(STDIN_FILENO, F_SETFL, O_NONBLOCK);
   pollfd fds[] = { { STDIN_FILENO, POLLIN, 0 } };
