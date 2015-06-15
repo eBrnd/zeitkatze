@@ -143,7 +143,7 @@ Zeitkatze z;
 bool running = true;
 double last_interrupt = -EXIT_TIMEOUT;
 
-void interrupt(int sig) {
+void interrupt(int) {
   if (z.elapsed() - last_interrupt < EXIT_TIMEOUT)
     running = false;
   else
