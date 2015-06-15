@@ -144,7 +144,7 @@ Zeitkatze* z;
 bool running = true;
 double last_interrupt = -EXIT_TIMEOUT;
 
-void interrupt(int sig) {
+void interrupt(int) {
   if (!z)
     return;
 
