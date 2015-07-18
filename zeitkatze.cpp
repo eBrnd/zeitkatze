@@ -52,7 +52,6 @@ std::ostream& operator<<(std::ostream& oss, Color c) {
 class Zeitkatze {
   public:
     Zeitkatze() : split_printed(false), start(steady_clock::now()), last_lap(start) { }
-    ~Zeitkatze() { print_end_time(); std::cout << std::endl; }
 
     void print_split_time() {
       print_time(some_cat_index(), Color::Split);
@@ -153,6 +152,11 @@ void interrupt(int sig) {
   last_interrupt = z.elapsed();
 }
 
+void end() {
+  z.print_end_time();
+  std::cout << std::endl;
+}
+
 int main(int argc, char** argv) {
   char* color_env = getenv("ZEITKATZE_COLOR");
   if (color_env != nullptr && std::string(color_env) == "0")
@@ -188,6 +192,8 @@ int main(int argc, char** argv) {
   fcntl(STDIN_FILENO, F_SETFL, O_NONBLOCK);
   pollfd fds[] = { { STDIN_FILENO, POLLIN, 0 } };
   unsigned char x = 0;
+
+  atexit(end);
 
   struct termios tio;
 
