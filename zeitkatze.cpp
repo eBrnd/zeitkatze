@@ -1,3 +1,4 @@
+#include <atomic>
 #include <chrono>
 #include <cmath>
 #include <csignal>
@@ -138,25 +139,19 @@ const CatVector Zeitkatze::cats({ "=(^.^)=", "=(o.o)=", "=(^.^)\"", "=(x.x)=",
     "=[˙.˙]=", "=(~.~)=", "=(ˇ.ˇ)=", "=(=.=)=" });
 
 // oh so globally
-const double EXIT_TIMEOUT = 0.8;
-Zeitkatze z;
-bool running = true;
-bool print_newline = false; // Print a new line before the end_time. Should be done after ^C^C but not after ^D
-double last_interrupt = -EXIT_TIMEOUT;
+std::atomic<bool> interrupted(false);
 
 void interrupt(int) {
-  if (z.elapsed() - last_interrupt < EXIT_TIMEOUT)
-  {
-    running = false;
-    print_newline = true;
-  }
-  else
-    z.print_split_time();
-
-  last_interrupt = z.elapsed();
+  interrupted = true;
 }
 
 int main(int argc, char** argv) {
+  const double EXIT_TIMEOUT = 0.8;
+  Zeitkatze z;
+  bool running = true;
+  bool print_newline = false; // Print a new line before the end_time. Should be done after ^C^C but not after ^D
+  double last_interrupt = -EXIT_TIMEOUT;
+
   char* color_env = getenv("ZEITKATZE_COLOR");
   if (color_env != nullptr && std::string(color_env) == "0")
     color_enabled = false;
@@ -223,6 +218,20 @@ int main(int argc, char** argv) {
 
     if (z.elapsed() - last_interrupt > EXIT_TIMEOUT)
       z.print_current_time();
+
+    if (interrupted) {
+      if (z.elapsed() - last_interrupt < EXIT_TIMEOUT)
+      {
+        running = false;
+        print_newline = true;
+      } else {
+        z.print_split_time();
+      }
+
+      last_interrupt = z.elapsed();
+
+      interrupted = false;
+    }
   }
 
   if (print_newline)
