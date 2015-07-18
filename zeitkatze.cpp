@@ -141,11 +141,15 @@ const CatVector Zeitkatze::cats({ "=(^.^)=", "=(o.o)=", "=(^.^)\"", "=(x.x)=",
 const double EXIT_TIMEOUT = 0.8;
 Zeitkatze z;
 bool running = true;
+bool print_newline = false; // Print a new line before the end_time. Should be done after ^C^C but not after ^D
 double last_interrupt = -EXIT_TIMEOUT;
 
 void interrupt(int) {
   if (z.elapsed() - last_interrupt < EXIT_TIMEOUT)
+  {
     running = false;
+    print_newline = true;
+  }
   else
     z.print_split_time();
 
@@ -220,6 +224,9 @@ int main(int argc, char** argv) {
     if (z.elapsed() - last_interrupt > EXIT_TIMEOUT)
       z.print_current_time();
   }
+
+  if (print_newline)
+    std::cout << std::endl;
 
   z.print_end_time();
   std::cout << std::endl;
