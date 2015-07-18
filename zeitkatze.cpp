@@ -152,11 +152,6 @@ void interrupt(int) {
   last_interrupt = z.elapsed();
 }
 
-void end() {
-  z.print_end_time();
-  std::cout << std::endl;
-}
-
 int main(int argc, char** argv) {
   char* color_env = getenv("ZEITKATZE_COLOR");
   if (color_env != nullptr && std::string(color_env) == "0")
@@ -193,7 +188,6 @@ int main(int argc, char** argv) {
   pollfd fds[] = { { STDIN_FILENO, POLLIN, 0 } };
   unsigned char x = 0;
 
-  atexit(end);
 
   struct termios tio;
 
@@ -218,7 +212,7 @@ int main(int argc, char** argv) {
           break;
 
         case 4: // ^D
-          return 0;
+          running = false;
         }
       }
     }
@@ -226,6 +220,9 @@ int main(int argc, char** argv) {
     if (z.elapsed() - last_interrupt > EXIT_TIMEOUT)
       z.print_current_time();
   }
+
+  z.print_end_time();
+  std::cout << std::endl;
 
   return 0;
 }
