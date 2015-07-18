@@ -52,7 +52,6 @@ std::ostream& operator<<(std::ostream& oss, Color c) {
 class Zeitkatze {
   public:
     Zeitkatze() : split_printed(false), start(steady_clock::now()), last_lap(start) { }
-    ~Zeitkatze() { print_end_time(); std::cout << std::endl; }
 
     void print_split_time() {
       print_time(some_cat_index(), Color::Split);
@@ -140,20 +139,22 @@ const CatVector Zeitkatze::cats({ "=(^.^)=", "=(o.o)=", "=(^.^)\"", "=(x.x)=",
 
 // oh so globally
 const double EXIT_TIMEOUT = 0.8;
-Zeitkatze* z;
+Zeitkatze z;
 bool running = true;
 double last_interrupt = -EXIT_TIMEOUT;
 
 void interrupt(int) {
-  if (!z)
-    return;
-
-  if (z->elapsed() - last_interrupt < EXIT_TIMEOUT)
+  if (z.elapsed() - last_interrupt < EXIT_TIMEOUT)
     running = false;
   else
-    z->print_split_time();
+    z.print_split_time();
 
-  last_interrupt = z->elapsed();
+  last_interrupt = z.elapsed();
+}
+
+void end() {
+  z.print_end_time();
+  std::cout << std::endl;
 }
 
 int main(int argc, char** argv) {
@@ -183,15 +184,16 @@ int main(int argc, char** argv) {
 
       return 0;
     }
+
   }
 
-  Zeitkatze zk;
-  z = &zk;
 
   signal(SIGINT, interrupt);
   fcntl(STDIN_FILENO, F_SETFL, O_NONBLOCK);
   pollfd fds[] = { { STDIN_FILENO, POLLIN, 0 } };
   unsigned char x = 0;
+
+  atexit(end);
 
   struct termios tio;
 
@@ -208,11 +210,11 @@ int main(int argc, char** argv) {
         switch (x) {
         case '\n':
         case '\r':
-          z->print_split_time();
+          z.print_split_time();
           break;
 
         case 'r':
-          z->reset_laps();
+          z.reset_laps();
           break;
 
         case 4: // ^D
@@ -221,8 +223,8 @@ int main(int argc, char** argv) {
       }
     }
 
-    if (z->elapsed() - last_interrupt > EXIT_TIMEOUT)
-      z->print_current_time();
+    if (z.elapsed() - last_interrupt > EXIT_TIMEOUT)
+      z.print_current_time();
   }
 
   return 0;
