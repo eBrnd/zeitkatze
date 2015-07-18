@@ -51,7 +51,7 @@ std::ostream& operator<<(std::ostream& oss, Color c) {
 
 class Zeitkatze {
   public:
-    Zeitkatze() : split_printed(false), start(steady_clock::now()), last_lap(start) { }
+    Zeitkatze() : split_printed(false), start(steady_clock::now()), last_lap(start), last_line_len(0) { }
 
     void print_split_time() {
       print_time(some_cat_index(), Color::Split);
