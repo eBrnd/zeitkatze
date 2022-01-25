@@ -146,11 +146,11 @@ void interrupt(int) {
 }
 
 int main(int argc, char** argv) {
-  const double EXIT_TIMEOUT = 0.8;
+  constexpr double EXIT_TIMEOUT = 0.8;
   Zeitkatze z;
   bool running = true;
   bool print_newline = false; // Print a new line before the end_time. Should be done after ^C^C but not after ^D
-  double last_interrupt = -EXIT_TIMEOUT;
+  constexpr double last_interrupt = -EXIT_TIMEOUT;
 
   char* color_env = getenv("ZEITKATZE_COLOR");
   if (color_env != nullptr && std::string(color_env) == "0")
