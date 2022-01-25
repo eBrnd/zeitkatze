@@ -191,7 +191,7 @@ int main(int argc, char** argv) {
   struct termios tio;
 
   if (tcgetattr(1, &tio) == 0) {
-    tio.c_lflag &= ~(ECHO | ICANON);
+    tio.c_lflag &= ~(ICANON);
     tio.c_cc[VMIN] = 0;
     tio.c_cc[VTIME] = 0;
     tcsetattr(1, TCSANOW, &tio);
