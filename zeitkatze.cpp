@@ -10,6 +10,7 @@
 #include <termios.h>
 #include <unistd.h>
 #include <vector>
+#include <string>
 
 using std::chrono::duration;
 using std::chrono::duration_cast;
@@ -17,228 +18,218 @@ using std::chrono::steady_clock;
 using std::setfill;
 using std::setw;
 
-typedef std::vector<const char*> CatVector;
-typedef std::vector<const char*>::size_type CatIndex;
+typedef std::vector<std::string> CatVector;
+typedef std::vector<std::string>::size_type CatIndex;
 
 enum class Color {
-  Normal,
-  Cat,
-  Cat_hold,
-  Total,
-  Running,
-  Running_lap,
-  Split,
-  Split_lap
+    Normal,
+    Cat,
+    Cat_hold,
+    Total,
+    Running,
+    Running_lap,
+    Split,
+    Split_lap
 };
 
-bool color_enabled = true;
+static bool color_enabled = true;
+
+// oh so globally
+static std::atomic<bool> interrupted(false);
+
+static void interrupt(int) {
+    interrupted = true;
+}
 
 std::ostream& operator<<(std::ostream& oss, Color c) {
-  if (color_enabled) {
-    switch (c) {
-      case Color::Normal: oss << "\033[0m"; break;
-      case Color::Cat: oss << "\033[34m"; break;
-      case Color::Cat_hold: oss << "\033[34;1m"; break;
-      case Color::Total: oss << "\033[37;1m"; break;
-      case Color::Running: oss << "\033[32m"; break;
-      case Color::Running_lap: oss << "\033[33m"; break;
-      case Color::Split: oss << "\033[32;1m"; break;
-      case Color::Split_lap: oss << "\033[33;1m"; break;
-      default: break;
+    if (color_enabled) {
+        switch (c) {
+            case Color::Normal: oss << "\033[0m"; break;
+            case Color::Cat: oss << "\033[34m"; break;
+            case Color::Cat_hold: oss << "\033[34;1m"; break;
+            case Color::Total: oss << "\033[37;1m"; break;
+            case Color::Running: oss << "\033[32m"; break;
+            case Color::Running_lap: oss << "\033[33m"; break;
+            case Color::Split: oss << "\033[32;1m"; break;
+            case Color::Split_lap: oss << "\033[33;1m"; break;
+            default: break;
+        }
     }
-  }
-  return oss;
+    return oss;
 }
 
 class Zeitkatze {
-  public:
-    Zeitkatze() : split_printed(false), start(steady_clock::now()), last_lap(start), last_line_len(0) { }
+    public:
+        Zeitkatze() : split_printed_(false), start_(steady_clock::now()), last_lap_(start_), last_line_len_(0) { }
 
-    void print_split_time() {
-      print_time(some_cat_index(), Color::Split);
-    }
+        void print_split_time() {
+            print_time(some_cat_index(), Color::Split);
+        }
 
-    void print_end_time() {
-      print_time(cats.size() - 1, Color::Total);
-    }
+        void print_end_time() {
+            print_time(kCats.size() - 1, Color::Total);
+        }
 
-    void print_time(const CatIndex cat_index, const Color color) {
-      steady_clock::time_point now(steady_clock::now());
-      std::stringstream sbuf;
-      sbuf << Color::Cat_hold << cats[cat_index] << Color::Cat_hold << "   " << color << format_seconds(elapsed(), 4) << Color::Normal
-        << "  (" << Color::Split_lap << format_seconds(duration_cast<duration<double>>(now - last_lap).count(), 4) << Color::Normal
-        << ")";
-      std::string&& line = sbuf.str();
-      std::cout << "\r" << std::string(last_line_len, ' ')
-        << "\r" << line << std::flush;
-      last_lap = now;
-      split_printed = true;
-      had_lap = true;
-      last_line_len = line.size();
-    }
+        void print_time(const CatIndex cat_index, const Color color) {
+            steady_clock::time_point now(steady_clock::now());
+            std::stringstream sbuf;
+            sbuf << Color::Cat_hold << kCats[cat_index] << Color::Cat_hold << "   " << color << format_seconds(elapsed(), 4) << Color::Normal
+                << "  (" << Color::Split_lap << format_seconds(duration_cast<duration<double>>(now - last_lap_).count(), 4) << Color::Normal
+                << ")";
+            std::string&& line = sbuf.str();
+            std::cout << "\r" << std::string(last_line_len_, ' ')
+                << "\r" << line << std::flush;
+            last_lap_ = now;
+            split_printed_ = true;
+            had_lap_ = true;
+            last_line_len_ = line.size();
+        }
 
-    void print_current_time() {
-      if (split_printed) {
-        std::cout << std::endl;
-        split_printed = false;
-      }
-      std::stringstream sbuf;
-      sbuf << Color::Cat << cats[0] << "   " << Color::Running << format_seconds(elapsed(), 2) << Color::Normal;
-      if (had_lap) {
-        auto current_lap = duration_cast<duration<double>>(steady_clock::now() - last_lap);
-        sbuf << "  (" << Color::Running_lap << format_seconds(current_lap.count(), 2) << Color::Normal << ")";
-      }
-      std::string&& line = sbuf.str();
-      std::cout << "\r" << std::string(last_line_len, ' ')
-        << "\r" << line << std::flush;
-      last_line_len = line.size();
-    }
+        void print_current_time() {
+            if (split_printed_) {
+                std::cout << std::endl;
+                split_printed_ = false;
+            }
+            std::stringstream sbuf;
+            sbuf << Color::Cat << kCats[0] << "   " << Color::Running << format_seconds(elapsed(), 2) << Color::Normal;
+            if (had_lap_) {
+                auto current_lap = duration_cast<duration<double>>(steady_clock::now() - last_lap_);
+                sbuf << "  (" << Color::Running_lap << format_seconds(current_lap.count(), 2) << Color::Normal << ")";
+            }
+            std::string&& line = sbuf.str();
+            std::cout << "\r" << std::string(last_line_len_, ' ')
+                << "\r" << line << std::flush;
+            last_line_len_ = line.size();
+        }
 
-    double elapsed() {
-      duration<double> time_span = duration_cast<duration<double>>(steady_clock::now() - start);
-      return time_span.count();
-    }
+        double elapsed() {
+            duration<double> time_span = duration_cast<duration<double>>(steady_clock::now() - start_);
+            return time_span.count();
+        }
 
-    std::string format_seconds(double seconds, unsigned precision = 2) {
-      double full_seconds = floor(seconds);
-      double fractional_seconds = seconds - full_seconds;
+        std::string format_seconds(double seconds, unsigned precision = 2) {
+            double full_seconds = floor(seconds);
+            double fractional_seconds = seconds - full_seconds;
+            double minutes = floor(full_seconds / 60.0);
+            unsigned min = static_cast<unsigned>(minutes);
+            unsigned sec = static_cast<unsigned>(full_seconds) % 60;
+            unsigned frs = static_cast<unsigned>(fractional_seconds * pow(10, precision));
 
-      double minutes = floor(full_seconds / 60.0);
+            std::ostringstream oss;
+            if (min > 0)
+                oss << min << ":";
+            oss << setfill('0') << setw(2) << sec << "." << setw(precision) << frs;
 
-      unsigned min = static_cast<unsigned>(minutes);
-      unsigned sec = static_cast<unsigned>(full_seconds) % 60;
-      unsigned frs = static_cast<unsigned>(fractional_seconds * pow(10, precision));
+            return oss.str();
+        }
 
-      std::ostringstream oss;
-      if (min > 0)
-        oss << min << ":";
-      oss << setfill('0') << setw(2) << sec << "." << setw(precision) << frs;
+        CatIndex some_cat_index() {
+            return static_cast<CatIndex>(elapsed() * 100) % (kCats.size() - 2) + 1;
+        }
 
-      return oss.str();
-    }
+        void reset_laps() {
+            last_lap_ = steady_clock::now();
+            had_lap_ = false;
+        }
 
-    CatIndex some_cat_index() {
-      return static_cast<CatIndex>(elapsed() * 100) % (cats.size() - 2) + 1;
-    }
+        static const CatVector kCats;
 
-    void reset_laps() {
-      last_lap = steady_clock::now();
-      had_lap = false;
-    }
-
-    static const CatVector cats;
-
-  private:
-    bool split_printed, had_lap;
-    steady_clock::time_point start, last_lap;
-    unsigned last_line_len;
+    private:
+        bool split_printed_, had_lap_;
+        steady_clock::time_point start_, last_lap_;
+        unsigned last_line_len_;
 };
 
-const CatVector Zeitkatze::cats({ "=(^.^)=", "=(o.o)=", "=(^.^)\"", "=(x.x)=",
-    "=(o.o)m", " (o,o) ", "=(0.0)=", "=(@.@)=", "=(*.*)=", "=(-.-)=", "=(v.v)=", "=(o.O)=",
-    "=[˙.˙]=", "=(~.~)=", "=(ˇ.ˇ)=", "=(=.=)=" });
 
-// oh so globally
-std::atomic<bool> interrupted(false);
+class ZeitkatzeRunner {
+    public:
+        ZeitkatzeRunner () { init(); }
+        void run();
 
-void interrupt(int) {
-  interrupted = true;
+    private:
+        // methods
+        void init();
+        // members
+        // TODO: arguments
+        std::unique_ptr<Zeitkatze> zeitkatze = std::make_unique<Zeitkatze>();
+        const double kExitTimeout_ = 0.8;
+        bool running_ = true;
+        // Print a new line before the end_time. Should be done after ^C^C but not after ^D
+        bool print_newline_ = false;
+        bool interrupted_;
+        bool color_enabled_ = true;
+        double last_interrupt_ = -kExitTimeout_;
+};
+
+void ZeitkatzeRunner::init() {
+    char* color_env = getenv("ZEITKATZE_COLOR");
+    if (color_env != nullptr && std::string(color_env) == "0")
+        color_enabled_ = false;
+
+    signal(SIGINT, interrupt);
+    fcntl(STDIN_FILENO, F_SETFL, O_NONBLOCK);
+
+    struct termios tio;
+    if (tcgetattr(1, &tio) == 0) {
+        tio.c_lflag &= ~(ICANON);
+        tio.c_cc[VMIN] = 0;
+        tio.c_cc[VTIME] = 0;
+        tcsetattr(1, TCSANOW, &tio);
+    }
 }
 
-int main(int argc, char** argv) {
-  constexpr double EXIT_TIMEOUT = 0.8;
-  Zeitkatze z;
-  bool running = true;
-  bool print_newline = false; // Print a new line before the end_time. Should be done after ^C^C but not after ^D
-  constexpr double last_interrupt = -EXIT_TIMEOUT;
 
-  char* color_env = getenv("ZEITKATZE_COLOR");
-  if (color_env != nullptr && std::string(color_env) == "0")
-    color_enabled = false;
-
-  if (argc > 1) {
-    if (std::string(argv[1]) == "-c" || std::string(argv[1]) == "--color") {
-      color_enabled = true;
-    } else if (std::string(argv[1]) == "-n" || std::string(argv[1]) == "--no-color") {
-      color_enabled = false;
-    } else {
-      std::cout << "Zeitkatze" << std::endl;
-      std::cout << std::endl;
-      std::cout << "    time cat -- literally" << std::endl;
-      std::cout << std::endl;
-      std::cout << "Usage: zeitkatze [-c | -n | --color | --no-color]" << std::endl;
-      std::cout << std::endl;
-      std::cout << "Ctrl-c for split/lap time, Ctrl-cc or Ctrl-d to stop." << std::endl;
-      std::cout << std::endl;
-      std::cout << "-c, --color     Enable colored output (default)." << std::endl;
-      std::cout << "-n, --no-color  Disable colored output." << std::endl;
-      std::cout << "                If both arguments are present, the first one counts." << std::endl;
-      std::cout << "                (overrides ZEITKATZE_COLOR environment variable (set to" << std::endl;
-      std::cout << "                \"0\" for no color))" << std::endl;
-
-      return 0;
-    }
-
-  }
-
-
-  signal(SIGINT, interrupt);
-  fcntl(STDIN_FILENO, F_SETFL, O_NONBLOCK);
-  pollfd fds[] = { { STDIN_FILENO, POLLIN, 0 } };
-  unsigned char x = 0;
-
-
-  struct termios tio;
-
-  if (tcgetattr(1, &tio) == 0) {
-    tio.c_lflag &= ~(ICANON);
-    tio.c_cc[VMIN] = 0;
-    tio.c_cc[VTIME] = 0;
-    tcsetattr(1, TCSANOW, &tio);
-  }
-
-  while(running) {
-    if (poll(fds, 1, 42) == 1) {
-      if ((fds[0].revents & POLLIN) && read(0, &x, 1) == 1) {
-        switch (x) {
-        case '\n':
-        case '\r':
-          z.print_split_time();
-          break;
-
-        case 'r':
-          z.reset_laps();
-          break;
-
-        case 4: // ^D
-          running = false;
+void ZeitkatzeRunner::run() {
+    pollfd fds[] = { { STDIN_FILENO, POLLIN, 0 } };
+    unsigned char x = 0;
+    while(running_) {
+        if (poll(fds, 1, 42) == 1) {
+            if ((fds[0].revents & POLLIN) && read(0, &x, 1) == 1) {
+                switch (x) {
+                    case '\n':
+                    case '\r':
+                        zeitkatze->print_split_time();
+                        break;
+                    case 'r':
+                        zeitkatze->reset_laps();
+                        break;
+                    case 4: // ^D
+                        running_ = false;
+                }
+            }
         }
-      }
+        if (zeitkatze->elapsed() - last_interrupt_ > kExitTimeout_)
+            zeitkatze->print_current_time();
+
+        if (interrupted) {
+            if (zeitkatze->elapsed() - last_interrupt_ < kExitTimeout_)
+            {
+                running_ = false;
+                print_newline_ = true;
+            } else {
+                zeitkatze->print_split_time();
+            }
+            last_interrupt_ = zeitkatze->elapsed();
+            interrupted = false;
+        }
     }
 
-    if (z.elapsed() - last_interrupt > EXIT_TIMEOUT)
-      z.print_current_time();
-
-    if (interrupted) {
-      if (z.elapsed() - last_interrupt < EXIT_TIMEOUT)
-      {
-        running = false;
-        print_newline = true;
-      } else {
-        z.print_split_time();
-      }
-
-      last_interrupt = z.elapsed();
-
-      interrupted = false;
-    }
-  }
-
-  if (print_newline)
+    if (print_newline_)
+        std::cout << std::endl;
+    zeitkatze->print_end_time();
     std::cout << std::endl;
+}
 
-  z.print_end_time();
-  std::cout << std::endl;
 
-  return 0;
+
+const CatVector Zeitkatze::kCats({ "=(^.^)=", "=(o.o)=", "=(^.^)\"", "=(x.x)=",
+        "=(o.o)m", " (o,o) ", "=(0.0)=", "=(@.@)=", "=(*.*)=", "=(-.-)=", "=(v.v)=", "=(o.O)=",
+        "=[˙.˙]=", "=(~.~)=", "=(ˇ.ˇ)=", "=(=.=)=" });
+
+
+
+int main(int argc, char** argv) {
+    auto z = std::make_unique<ZeitkatzeRunner>();
+    z->run();
+    return 0;
 }
