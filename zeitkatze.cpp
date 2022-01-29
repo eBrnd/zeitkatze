@@ -61,7 +61,12 @@ std::ostream& operator<<(std::ostream& oss, Color c) {
 
 class Zeitkatze {
     public:
-        Zeitkatze() : split_printed_(false), start_(steady_clock::now()), last_lap_(start_), last_line_len_(0) { }
+        Zeitkatze() :
+            split_printed_(false),
+            start_(steady_clock::now()),
+            last_lap_(start_),
+            last_line_len_(0)
+                { }
         void print_split_time() { print_time(some_cat_index(), Color::Split); }
         void print_end_time() { print_time(kCats.size() - 1, Color::Total); }
         void print_time(const CatIndex cat_index, const Color color); 
@@ -116,7 +121,7 @@ class Zeitkatze {
             return time_span.count();
         }
 
-        std::string format_seconds(double seconds, unsigned precision = 2) {
+        std::string Zeitkatze::format_seconds(double seconds, unsigned precision) {
             double full_seconds = floor(seconds);
             double fractional_seconds = seconds - full_seconds;
             double minutes = floor(full_seconds / 60.0);
