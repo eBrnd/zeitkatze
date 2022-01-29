@@ -58,19 +58,28 @@ std::ostream& operator<<(std::ostream& oss, Color c) {
     return oss;
 }
 
+
 class Zeitkatze {
     public:
         Zeitkatze() : split_printed_(false), start_(steady_clock::now()), last_lap_(start_), last_line_len_(0) { }
+        void print_split_time() { print_time(some_cat_index(), Color::Split); }
+        void print_end_time() { print_time(kCats.size() - 1, Color::Total); }
+        void print_time(const CatIndex cat_index, const Color color); 
+        void print_current_time();
+        double elapsed();
+        std::string format_seconds(double seconds, unsigned precision = 2);
+        CatIndex some_cat_index();
+        void reset_laps();
+        static const CatVector kCats;
 
-        void print_split_time() {
-            print_time(some_cat_index(), Color::Split);
-        }
+    private:
+        bool split_printed_, had_lap_;
+        steady_clock::time_point start_, last_lap_;
+        unsigned last_line_len_;
+};
 
-        void print_end_time() {
-            print_time(kCats.size() - 1, Color::Total);
-        }
 
-        void print_time(const CatIndex cat_index, const Color color) {
+        void Zeitkatze::print_time(const CatIndex cat_index, const Color color) {
             steady_clock::time_point now(steady_clock::now());
             std::stringstream sbuf;
             sbuf << Color::Cat_hold << kCats[cat_index] << Color::Cat_hold << "   " << color << format_seconds(elapsed(), 4) << Color::Normal
@@ -85,7 +94,7 @@ class Zeitkatze {
             last_line_len_ = line.size();
         }
 
-        void print_current_time() {
+        void Zeitkatze::print_current_time() {
             if (split_printed_) {
                 std::cout << std::endl;
                 split_printed_ = false;
@@ -102,7 +111,7 @@ class Zeitkatze {
             last_line_len_ = line.size();
         }
 
-        double elapsed() {
+        double Zeitkatze::elapsed() {
             duration<double> time_span = duration_cast<duration<double>>(steady_clock::now() - start_);
             return time_span.count();
         }
@@ -123,22 +132,16 @@ class Zeitkatze {
             return oss.str();
         }
 
-        CatIndex some_cat_index() {
-            return static_cast<CatIndex>(elapsed() * 100) % (kCats.size() - 2) + 1;
+
+        CatIndex Zeitkatze::some_cat_index() { return static_cast<CatIndex>
+            (elapsed() * 100) % (kCats.size() - 2) + 1;
         }
 
-        void reset_laps() {
+        void Zeitkatze::reset_laps() {
             last_lap_ = steady_clock::now();
             had_lap_ = false;
         }
 
-        static const CatVector kCats;
-
-    private:
-        bool split_printed_, had_lap_;
-        steady_clock::time_point start_, last_lap_;
-        unsigned last_line_len_;
-};
 
 
 class ZeitkatzeRunner {
