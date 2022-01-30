@@ -2,6 +2,7 @@
 #include "zeitkatze_runner.hpp"
 #include <iostream>
 #include <string>
+#include <atomic>
 
 
 bool color_enabled {true};
