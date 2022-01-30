@@ -57,11 +57,9 @@ class Zeitkatze {
 		bool split_printed_, had_lap_;
 		steady_clock::time_point start_, last_lap_;
 		unsigned last_line_len_;
-        const CatVector kCats = { "=(^.^)=", "=(o.o)=", "=(^.^)\"", "=(x.x)=",
+		const CatVector kCats = { "=(^.^)=", "=(o.o)=", "=(^.^)\"", "=(x.x)=",
 		"=(o.o)m", " (o,o) ", "=(0.0)=", "=(@.@)=", "=(*.*)=", "=(-.-)=", "=(v.v)=", "=(o.O)=",
 		"=[˙.˙]=", "=(~.~)=", "=(ˇ.ˇ)=", "=(=.=)=" };
-
-
 };
 
 
