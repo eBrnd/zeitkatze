@@ -1,5 +1,8 @@
 #include "zeitkatze.hpp"
 #include "zeitkatze_runner.hpp"
+#include <iostream>
+#include <string>
+
 
 bool color_enabled {true};
 std::atomic<bool> interrupted {false};
@@ -25,8 +28,31 @@ void interrupt(int) {
 	interrupted = true;
 }
 
+
 int main(int argc, char** argv) {
-	auto z = std::make_unique<ZeitkatzeRunner>();
+	if (argc > 1) {
+		if (std::string(argv[1]) == "-c" || std::string(argv[1]) == "--color") {
+			color_enabled = true;
+		} else if (std::string(argv[1]) == "-n" || std::string(argv[1]) == "--no-color") {
+			color_enabled = false;
+		} else {
+			std::cout << "Zeitkatze" << std::endl;
+			std::cout << std::endl;
+			std::cout << "		time cat -- literally" << std::endl;
+			std::cout << std::endl;
+			std::cout << "Usage: zeitkatze [-c | -n | --color | --no-color]" << std::endl;
+			std::cout << std::endl;
+			std::cout << "Ctrl-c for split/lap time, Ctrl-cc or Ctrl-d to stop." << std::endl;
+			std::cout << std::endl;
+			std::cout << "-c, --color		 Enable colored output (default)." << std::endl;
+			std::cout << "-n, --no-color	Disable colored output." << std::endl;
+			std::cout << "								If both arguments are present, the first one counts." << std::endl;
+			std::cout << "								(overrides ZEITKATZE_COLOR environment variable (set to" << std::endl;
+			std::cout << "								\"0\" for no color))" << std::endl;
+        }
+    }
+
+	auto z = std::make_unique<ZeitkatzeRunner>(color_enabled);
 	z->run();
 	return 0;
 }
