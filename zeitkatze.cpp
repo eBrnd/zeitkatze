@@ -165,14 +165,13 @@ class ZeitkatzeRunner {
         // Print a new line before the end_time. Should be done after ^C^C but not after ^D
         bool print_newline_ = false;
         bool interrupted_;
-        bool color_enabled_ = true;
         double last_interrupt_ = -kExitTimeout_;
 };
 
 void ZeitkatzeRunner::init() {
     char* color_env = getenv("ZEITKATZE_COLOR");
     if (color_env != nullptr && std::string(color_env) == "0")
-        color_enabled_ = false;
+        color_enabled = false;
 
     signal(SIGINT, interrupt);
     fcntl(STDIN_FILENO, F_SETFL, O_NONBLOCK);
