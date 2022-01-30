@@ -49,6 +49,7 @@ int main(int argc, char** argv) {
 			std::cout << "								If both arguments are present, the first one counts." << std::endl;
 			std::cout << "								(overrides ZEITKATZE_COLOR environment variable (set to" << std::endl;
 			std::cout << "								\"0\" for no color))" << std::endl;
+                        return 0;
         }
     }
 
