@@ -151,12 +151,13 @@ class Zeitkatze {
 
 class ZeitkatzeRunner {
     public:
-        ZeitkatzeRunner () { init(); }
+        ZeitkatzeRunner () { init(true); }
+        ZeitkatzeRunner (bool enable_color) { init(enable_color); }
         void run();
 
     private:
         // methods
-        void init();
+        void init(bool enable_color);
         // members
         // TODO: arguments
         std::unique_ptr<Zeitkatze> zeitkatze = std::make_unique<Zeitkatze>();
@@ -164,11 +165,11 @@ class ZeitkatzeRunner {
         bool running_ = true;
         // Print a new line before the end_time. Should be done after ^C^C but not after ^D
         bool print_newline_ = false;
-        bool interrupted_;
         double last_interrupt_ = -kExitTimeout_;
 };
 
-void ZeitkatzeRunner::init() {
+void ZeitkatzeRunner::init(bool enable_color) {
+    color_enabled = enable_color;
     char* color_env = getenv("ZEITKATZE_COLOR");
     if (color_env != nullptr && std::string(color_env) == "0")
         color_enabled = false;
