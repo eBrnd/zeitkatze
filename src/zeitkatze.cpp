@@ -8,7 +8,7 @@ using std::setw;
 void Zeitkatze::print_time(const CatIndex cat_index, const Color color) {
     steady_clock::time_point now(steady_clock::now());
     std::stringstream sbuf;
-    sbuf << Color::Cat_hold << kCats[cat_index] << Color::Cat_hold << "   " << color << format_seconds(elapsed(), 4) << Color::Normal
+    sbuf << Color::Cat_hold << kCats_[cat_index] << Color::Cat_hold << "   " << color << format_seconds(elapsed(), 4) << Color::Normal
         << "  (" << Color::Split_lap << format_seconds(duration_cast<duration<double>>(now - last_lap_).count(), 4) << Color::Normal
         << ")";
     std::string&& line = sbuf.str();
@@ -26,7 +26,7 @@ void Zeitkatze::print_current_time() {
         split_printed_ = false;
     }
     std::stringstream sbuf;
-    sbuf << Color::Cat << kCats[0] << "   " << Color::Running << format_seconds(elapsed(), 2) << Color::Normal;
+    sbuf << Color::Cat << kCats_[0] << "   " << Color::Running << format_seconds(elapsed(), 2) << Color::Normal;
     if (had_lap_) {
         auto current_lap = duration_cast<duration<double>>(steady_clock::now() - last_lap_);
         sbuf << "  (" << Color::Running_lap << format_seconds(current_lap.count(), 2) << Color::Normal << ")";
@@ -60,7 +60,7 @@ std::string Zeitkatze::format_seconds(double seconds, unsigned precision) {
 
 
 CatIndex Zeitkatze::some_cat_index() { return static_cast<CatIndex>
-    (elapsed() * 100) % (kCats.size() - 2) + 1;
+    (elapsed() * 100) % (kCats_.size() - 2) + 1;
 }
 
 void Zeitkatze::reset_laps() {
