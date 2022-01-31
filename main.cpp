@@ -6,6 +6,7 @@
 #include <memory> // make_unique
 
 
+// define external variables and operator
 bool color_enabled {true};
 std::atomic<bool> interrupted {false};
 
@@ -48,15 +49,16 @@ int main(int argc, char** argv) {
     bool argColorEnabled = true;
     int argPrecision = 2;
     char** arg = argv;
-    while(--argc > 0)	{
-        if (!std::string(*arg).compare("-n") || !std::string(*arg).compare("--no-color")) {
+    auto argEqual = [] (char** arg, const std::string& str) -> bool
+        { return !std::string(*arg).compare(str); };
+    while(--argc >= 0)	{
+        if (argEqual(arg, "-n") || argEqual(arg, "--no-color"))
             argColorEnabled = false;
-        }
-        if (!std::string(*arg).compare("-p") || !std::string(*arg).compare("--precision") ) {
+        if (argEqual(arg, "-p") || argEqual(arg, "--precision")) {
             if (argc > 1)
                 argPrecision = std::stoi(std::string(*++arg));
         }
-        if (!std::string(*arg).compare("-h") || !std::string(*arg).compare("--help") ) {
+        if (argEqual(arg, "-h") || argEqual(arg, "--help")) {
             std::cout << instructions;
             return 0;
         }
