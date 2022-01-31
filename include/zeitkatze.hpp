@@ -42,14 +42,22 @@ class Zeitkatze {
 			split_printed_(false),
 			start_(steady_clock::now()),
 			last_lap_(start_),
-			last_line_len_(0)
+			last_line_len_(0),
+            precision_(4)
 				{ }
+		Zeitkatze(unsigned precision) :
+			split_printed_(false),
+			start_(steady_clock::now()),
+			last_lap_(start_),
+			last_line_len_(0),
+            precision_(precision)
+                {  }
 		void print_split_time() { print_time(some_cat_index(), Color::Split); }
 		void print_end_time() { print_time(kCats_.size() - 1, Color::Total); }
 		void print_time(const CatIndex cat_index, const Color color); 
 		void print_current_time();
 		double elapsed();
-		std::string format_seconds(double seconds, unsigned precision = 2);
+		std::string format_seconds(double seconds);
 		CatIndex some_cat_index();
 		void reset_laps();
 
@@ -57,6 +65,8 @@ class Zeitkatze {
 		bool split_printed_, had_lap_;
 		steady_clock::time_point start_, last_lap_;
 		unsigned last_line_len_;
+        // how many decimals to use when measuring time
+        const unsigned precision_;
 		const CatVector kCats_ = { "=(^.^)=", "=(o.o)=", "=(^.^)\"", "=(x.x)=",
 		"=(o.o)m", " (o,o) ", "=(0.0)=", "=(@.@)=", "=(*.*)=", "=(-.-)=", "=(v.v)=", "=(o.O)=",
 		"=[˙.˙]=", "=(~.~)=", "=(ˇ.ˇ)=", "=(=.=)=" };

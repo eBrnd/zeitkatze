@@ -51,11 +51,11 @@ int main(int argc, char** argv) {
     char** arg = argv;
     auto argEqual = [] (char** arg, const std::string& str) -> bool
         { return !std::string(*arg).compare(str); };
-    while(--argc >= 0)	{
+    while(--argc > 0)	{
         if (argEqual(arg, "-n") || argEqual(arg, "--no-color"))
             argColorEnabled = false;
         if (argEqual(arg, "-p") || argEqual(arg, "--precision")) {
-            if (argc > 1)
+            if (argc >= 1)
                 argPrecision = std::stoi(std::string(*++arg));
         }
         if (argEqual(arg, "-h") || argEqual(arg, "--help")) {
@@ -66,7 +66,7 @@ int main(int argc, char** argv) {
     }
 
     color_enabled = argColorEnabled;
-    auto z = std::make_unique<ZeitkatzeRunner>(color_enabled);
+    auto z = std::make_unique<ZeitkatzeRunner>(color_enabled, argPrecision);
     z->run();
     return 0;
 }

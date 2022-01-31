@@ -13,15 +13,19 @@
 
 class ZeitkatzeRunner {
 	public:
-		ZeitkatzeRunner () { init(true); }
-		ZeitkatzeRunner (bool enable_color) { init(enable_color); }
+		ZeitkatzeRunner (): prec_(2) { init(true); }
+		ZeitkatzeRunner (bool enable_color): prec_(2) { init(enable_color); }
+		ZeitkatzeRunner (bool enable_color, unsigned precision): prec_(precision)
+            { init(enable_color); }
 		void run();
 
 	private:
 		// methods
 		void init(bool enable_color);
 		// members
-		std::unique_ptr<Zeitkatze> zeitkatze = std::make_unique<Zeitkatze>();
+        // how many decimals when formating seconds in Zeitkatze instance
+        unsigned prec_;
+		std::unique_ptr<Zeitkatze> zeitkatze = std::make_unique<Zeitkatze>(prec_);
 		const double kExitTimeout_ = 0.8;
 		bool running_ = true;
 		// Print a new line before the end_time. Should be done after ^C^C but not after ^D
