@@ -8,7 +8,7 @@ INCL_DIR = include
 # make sure submodules (if they exist) in the include dir are included too
 CFLAGS = -std=c++17 -I$(INCL_DIR) -Wall
 LDFLAGS = 
-SOURCES = $(SRC_DIR)/zeitkatze.cpp $(SRC_DIR)/zeitkatze_runner.cpp main.cpp
+SOURCES = $(SRC_DIR)/zeitkatze.cpp main.cpp
 OBJECTS = $(SOURCES:%.cpp=%.o)
 RM = rm -rf
 

@@ -27,15 +27,29 @@ std::ostream& operator<<(std::ostream& oss, Color c) {
     return oss;
 }
 
-void interrupt(int) {
+void interruptCallback(int) {
     interrupted = true;
 }
 
 
+int main(int argc, char** argv) {
+    std::string instructions = "Zeitkatze\n\n" 
+        "\ttime cat -- literally\n\n"
+        "Arguments:\n"
+        "[-n | --no-color] (default true) If passed, disables colours\n"
+        "[-p | --precision] (default 2) How many decimals to use when measuring time\n"
+        "Wrong/Invalid argument prints usage message and exits\n\n"
+        "Instructions:\n"
+        "\tRun the executable to start measuring time.\n"
+        "\t-- Ctr + c = Split time/lap time\n "
+        "\t-- Enter = Split time/lap time\n "
+        "\t-- Ctr + d = Stop and exit\n"
+        "\t-- q = Stop and exit\n"
+        "\t-- r = Reset current lap\n\n";
 
-
-int main()
-{
-    auto z = Zeitkatze();        
-    z.run();
+    color_enabled = argColorEnabled;
+    auto z = std::make_unique<Zeitkatze>(color_enabled, argPrecision);
+    z->run();
+    return 0;
 }
+
